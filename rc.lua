@@ -18,14 +18,6 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
--- Load Debian menu entries
-local debian = require("debian.menu")
-local has_fdo, freedesktop = pcall(require, "freedesktop")
-
-
-
-
-
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -53,12 +45,10 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
---beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
-beautiful.init("~/.config/awesome/default/theme.lua")
-beautiful.get().wallpaper = "~/.config/awesome/default/wallpaper.jpg"
+beautiful.init("/home/red/.config/awesome/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "x-terminal-emulator"
+terminal = "terminator"
 editor = os.getenv("EDITOR") or "nvim"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -100,25 +90,13 @@ myawesomemenu = {
    { "quit", function() awesome.quit() end },
 }
 
-local menu_awesome = { "awesome", myawesomemenu, beautiful.awesome_icon }
-local menu_terminal = { "open terminal", terminal }
+mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
+                                    { "open terminal", terminal }
+                                  }
+                        })
 
-if has_fdo then
-    mymainmenu = freedesktop.menu.build({
-        before = { menu_awesome },
-        after =  { menu_terminal }
-    })
-else
-    mymainmenu = awful.menu({
-        items = {
-                  menu_awesome,
-                  { "Debian", debian.menu.Debian_menu.Debian },
-                  menu_terminal,
-                }
-    })
-end
-
-
+praisewidget = wibox.widget.textbox()
+praisewidget.text = "redmaster"
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
 
@@ -181,15 +159,12 @@ local function set_wallpaper(s)
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
-        gears.wallpaper.maximized(wallpaper, s, true)
+        --gears.wallpaper.maximized("/home/red/.config/awesome/default/default.jpg", s, true)
     end
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
-
-local praisewidget = wibox.widget.textbox()
-praisewidget.text = "redmaster"
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
@@ -224,39 +199,15 @@ awful.screen.connect_for_each_screen(function(s)
 
     -- Create the wibox
     s.mywibox = awful.wibar({ position = "top", screen = s })
+    s.otherbox = awful.wibar({position = "left", screen = s})
 
-    s.otherwibox = awful.wibar({ position = "bottom", screen = s })
-    s.otherwibox:setup {
+    s.otherbox:setup {
+      layout = wibox.layout.align.horizontal,
       {
-        {
-          {
-            markup = "<b>Hello</b>",
-            align = "center",
-            widget = wibox.widget.textbox
-          },
-          bg = "#ff00",
-          widget = wibox.container.background,
-        },
-        width = 300,
-        strategy = "min",
-        layout = wibox.layout.constraint
-      },
-      {
-        {
-          {
-            markup = "Foo",
-            widget = wibox.widget.textbox
-          },
-          bg = "#000f",
-          widget = wibox.container.background
-        },
-        left = 10,
-        right = 10,
-        top = 1,
-        bottom = 2,
-        layout = wibox.container.margin
-      },
-      layout = wibox.layout.fixed.horizontal
+        --Left
+        layout = wibox.layout.fixed.horizontal,
+        praisewidget
+      }
     }
 
     -- Add widgets to the wibox
